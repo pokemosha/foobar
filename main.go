@@ -2,28 +2,38 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"os"
 )
 
-func recursion(i uint, num uint) {
-	fmt.Printf("%d Foo", i)
+func recursion(output io.Writer, i uint, num uint) {
+	fmt.Fprintf(output, "%d Foo", i)
 	if i%3 == 0 {
-		fmt.Print(" Bar")
+		fmt.Fprint(output, " Bar")
 	}
-	fmt.Println()
+	fmt.Fprintln(output)
 	if i < num {
-		recursion(i+1, num)
+		recursion(output, i+1, num)
 	}
 }
 
-func main() {
+func foobar(writer io.Writer, reader io.Reader) error {
 	var number uint
-	_, err := fmt.Scanln(&number)
+	_, err := fmt.Fscanln(reader, &number)
+	if err != nil {
+		return err
+	}
+	if number == 0 {
+		return fmt.Errorf("expected integer more than 0")
+	}
+	recursion(writer, 1, number)
+	return nil
+}
+
+func main() {
+	err := foobar(os.Stdout, os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if number == 0 {
-		log.Fatal("expected integer more than 0")
-	}
-	recursion(1, number)
 }
